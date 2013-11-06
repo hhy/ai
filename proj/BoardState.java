@@ -30,10 +30,11 @@ class BoardState {
 		String msg;
 		int black;
 		int white;
-
-		public Heuristic(int black, int white) {
+		BoardState bs;
+		public Heuristic(int black, int white, BoardState bs) {
 			this.black = black;
 			this.white = white;
+			this.bs=bs;
 		}
 
 		@Override
@@ -74,15 +75,22 @@ class BoardState {
 		}
 	}
 
-	public MoveInfo getBestMove(Player p, int n) {
-		return null;
+	public MoveInfo getBestMove(Player p, int n) throws Exception {
+		Heuristic h=this.getHeuristic(p, n);
+		BoardState child=h.bs;
+		while(child.parent!=this){
+			if(child.parent==null) throw new Exception("Error in function of searching heuristic."); 
+			child=child.parent;
+		}
+		
+		return new MoveInfo(child.posMoved, child.by);
 	}
 
 	Heuristic getHeuristic(Player p) throws Exception {
 			
 			int movesBlack = this.getChildren(Player.BLACK).size();
 			int movesWhite = this.getChildren(Player.WHITE).size();
-			return new Heuristic(movesBlack, movesWhite);
+			return new Heuristic(movesBlack, movesWhite, this);
 
 	}
 
