@@ -8,10 +8,16 @@ public class Board {
 
 	static public enum Player {
 		BLACK, WHITE;
+		boolean isAI;
+
 		public Player shift() {
 			if (this == BLACK)
 				return WHITE;
 			return BLACK;
+		}
+
+		public void setAI() {
+			this.isAI = true;
 		}
 	}
 
@@ -154,10 +160,15 @@ public class Board {
 	}
 
 	private BoardPosition posCurrent;
-	private Player player;
+	private Player[] players;
 
 	public Player getPlayer() {
-		return this.player;
+		if (this.players == null) {
+			this.players = new Player[2];
+			this.players[1] = Player.WHITE;
+			this.players[0] = Player.BLACK;
+		}
+		return this.players[0];
 	}
 
 	public BoardPosition getCurrentPos() {
@@ -167,9 +178,10 @@ public class Board {
 	}
 
 	private void switchPlayer() {
-		if (this.player == null)
-			this.player = Player.BLACK;
-		this.player=this.player.shift();
+
+		Player p = this.players[0];
+		this.players[0] = this.players[1];
+		this.players[1] = p;
 	}
 
 	public void setPosition(BoardPosition p) throws Exception {
@@ -186,7 +198,7 @@ public class Board {
 		for (int row = 0; row < this.cells.length; row++) {
 			for (int col = 0; col < this.cells[row].length; col++) {
 				Cell c = this.cells[row][col];
-				if (c.player != null && c.player == player)
+				if (c.player != null && c.player == this.getPlayer())
 					poss.add(new BoardPosition(row, col));
 			}
 		}
@@ -201,7 +213,7 @@ public class Board {
 			if (pp == null)
 				continue;
 			if (this.getCell(pp).player == null
-					|| this.getCell(pp).player == this.player) {
+					|| this.getCell(pp).player == this.getPlayer()) {
 				System.out.print(m + ", ");
 				moves.add(m);
 			}
@@ -226,17 +238,17 @@ public class Board {
 		BoardPosition pos1 = pos0.getNeighbor(m);
 		BoardPosition pos2 = null;
 		if (pos1 != null
-				&& (this.getCell(pos1).player == this.player || this
+				&& (this.getCell(pos1).player == this.getPlayer() || this
 						.getCell(pos1).player == null)) {
 			availableFreeCells++;
 			pos2 = pos1.getNeighbor(m);
 			if (pos2 != null
-					&& (this.getCell(pos2).player == this.player || this
+					&& (this.getCell(pos2).player == this.getPlayer() || this
 							.getCell(pos2).player == null)) {
 				availableFreeCells++;
 			}
 		}
-		//System.out.println(availableFreeCells);
+		// System.out.println(availableFreeCells);
 
 		Cell c = this.getCell(posCurrent);
 		int cn = c.n;
@@ -244,24 +256,24 @@ public class Board {
 		c.n = 0;
 
 		Cell c0 = this.getCell(pos0);
-		c0.player = this.player;
+		c0.player = this.getPlayer();
 		if (availableFreeCells == 1 || cn == 1) {
 			c0.n += cn;
 		} else {
 			Cell c1 = this.getCell(pos1);
 			c0.n += 1;
-			c1.player = this.player;
+			c1.player = this.getPlayer();
 			if (availableFreeCells == 2 || cn <= 3) {
 				c1.n += cn - 1;
 			} else {
 				c1.n += 2;
 				Cell c2 = this.getCell(pos2);
-				c2.player = this.player;
+				c2.player = this.getPlayer();
 				c2.n += cn - 3;
 			}
 		}
 		String msg = String.format("[ %s - %s ] move ( %s ) %d steps",
-				this.player, this.posCurrent, m, availableFreeCells);
+				this.getPlayer(), this.posCurrent, m, availableFreeCells);
 		this.switchPlayer();
 		this.posCurrent = null;
 		this.updateUI();
@@ -323,7 +335,7 @@ public class Board {
 		this.getCell(new BoardPosition("1A")).setCell(10, Player.BLACK);
 		this.getCell(new BoardPosition("4D")).setCell(10, Player.WHITE);
 		this.history = new Stack<Cell[][]>();
-		this.player = Player.BLACK;
+		// this.player = Player.BLACK;
 	}
 
 	public boolean lost() {
@@ -338,7 +350,15 @@ public class Board {
 	}
 
 	void setPlayer(Player p) {
-		this.player = p;
+		if (this.players[0] != p)
+			this.switchPlayer();
+	}
+
+	void setPlayerToAI(Player p) {
+		if (this.players[0] == p)
+			this.players[0].setAI();
+		else
+			this.players[1].setAI();
 	}
 
 	/**

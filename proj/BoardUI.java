@@ -13,6 +13,7 @@ import java.util.Set;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -22,6 +23,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextArea;
 
 import proj.Board.BoardPosition;
+import proj.Board.Player;
 import proj.Board.TypeMove;
 
 public class BoardUI extends JFrame implements ActionListener {
@@ -30,7 +32,17 @@ public class BoardUI extends JFrame implements ActionListener {
 
 	public JPanel setActPanel() {
 		JPanel jp = new JPanel(new GridLayout(1, 2));
-		JPanel jpBtns = new JPanel(new GridLayout(2, 1));
+		JPanel jpBtns = new JPanel(new GridLayout(2, 2));
+
+		ButtonGroup isAIG = new ButtonGroup();
+		this.ckbBLack = new JCheckBox("Black is AI");
+		this.ckbBLack.addActionListener(this);
+		this.ckbWhite = new JCheckBox("White is AI");
+		this.ckbWhite.addActionListener(this);
+		isAIG.add(ckbWhite);
+		isAIG.add(ckbBLack);
+		jpBtns.add(ckbWhite);
+		jpBtns.add(ckbBLack);
 
 		this.btnPlay = new JButton(this.board.getPlayer() + " Play");
 		this.btnPlay.addActionListener(this);
@@ -101,7 +113,8 @@ public class BoardUI extends JFrame implements ActionListener {
 	JButton[][] cells;
 	JTextArea txt;
 	ButtonGroup dirG;
-	
+
+	JCheckBox ckbBLack, ckbWhite;
 
 	public BoardUI() {
 		super("project 1, board game");
@@ -132,7 +145,7 @@ public class BoardUI extends JFrame implements ActionListener {
 	}
 
 	public void updateBoardUI() {
-		
+
 		this.btnPlay.setText(this.board.getPlayer() + " play");
 		this.btnPlay.setEnabled(false);
 		for (int i = 0; i < this.dirs.length; i++) {
@@ -154,10 +167,10 @@ public class BoardUI extends JFrame implements ActionListener {
 			this.cells[p.row][p.col].setEnabled(true);
 		}
 		this.btnRollback.setEnabled(this.board.isUndoable());
-		if(this.board.lost()){
-			String msg=this.board.getPlayer()+" can't move, then "+this.board.getPlayer()+" lose!";
-			JOptionPane.showMessageDialog(this,
-				    msg);
+		if (this.board.lost()) {
+			String msg = this.board.getPlayer() + " can't move, then "
+					+ this.board.getPlayer() + " lose!";
+			JOptionPane.showMessageDialog(this, msg);
 		}
 		this.dirG.clearSelection();
 	}
@@ -215,6 +228,11 @@ public class BoardUI extends JFrame implements ActionListener {
 			_btn.setText("[" + _btn.getText() + "]");
 			this.updateAvailableDir(p);
 
+		} else if (btn == this.ckbBLack || btn == this.ckbWhite) {
+			if (this.ckbBLack == btn)
+				this.board.setPlayerToAI(Player.BLACK);
+			else
+				this.board.setPlayerToAI(Player.WHITE);
 		}
 
 	}
