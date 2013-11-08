@@ -21,10 +21,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 import proj.Board.BoardPosition;
 import proj.Board.Player;
 import proj.Board.TypeMove;
+import proj.BoardState.MoveInfo;
 
 public class BoardUI extends JFrame implements ActionListener {
 
@@ -32,20 +34,21 @@ public class BoardUI extends JFrame implements ActionListener {
 
 	public JPanel setActPanel() {
 		JPanel jp = new JPanel(new GridLayout(1, 2));
-		JPanel jpBtns = new JPanel(new GridLayout(2, 2));
-
-		ButtonGroup isAIG = new ButtonGroup();
-		this.ckbBLack = new JCheckBox("Black is AI");
-		this.ckbBLack.addActionListener(this);
-		this.ckbWhite = new JCheckBox("White is AI");
-		this.ckbWhite.addActionListener(this);
-		isAIG.add(ckbWhite);
-		isAIG.add(ckbBLack);
-		jpBtns.add(ckbWhite);
-		jpBtns.add(ckbBLack);
-
+		JPanel jpBtns = new JPanel(new GridLayout(3, 1));
+		JPanel jpAI=new JPanel(new GridLayout(1, 3));
+		
+		this.btnAiPlay=new JButton(this.board.getPlayer()+" Robot Play");
+		this.btnAiPlay.addActionListener(this);
+		JLabel lbMinMax=new JLabel("  Depth of MinMax: ");
+		this.txtMinMax=new JTextField();
+		
+		jpAI.add(btnAiPlay);
+		jpAI.add(lbMinMax);
+		jpAI.add(txtMinMax);
+		
 		this.btnPlay = new JButton(this.board.getPlayer() + " Play");
 		this.btnPlay.addActionListener(this);
+		jpBtns.add(jpAI);
 		jpBtns.add(this.btnPlay);
 		this.btnRollback = new JButton("Undo");
 		this.btnRollback.addActionListener(this);
@@ -101,20 +104,22 @@ public class BoardUI extends JFrame implements ActionListener {
 
 		JPanel jp = new JPanel();
 
-		this.txt = new JTextArea(30, 40);
+		this.txtLog = new JTextArea(30, 40);
 		// this.txt.setAutoscrolls(true);
-		jp.add(this.txt);
+		jp.add(this.txtLog);
 		return jp;
 	}
 
 	JRadioButton[] dirs;
-	JButton btnPlay;
+	JButton btnPlay, btnAiPlay;
 	JButton btnRollback;
 	JButton[][] cells;
-	JTextArea txt;
+	JTextArea txtLog; 
+	JTextField txtMinMax;
 	ButtonGroup dirG;
+	
 
-	JCheckBox ckbBLack, ckbWhite;
+	
 
 	public BoardUI() {
 		super("project 1, board game");
@@ -147,6 +152,7 @@ public class BoardUI extends JFrame implements ActionListener {
 	public void updateBoardUI() {
 
 		this.btnPlay.setText(this.board.getPlayer() + " play");
+		this.btnAiPlay.setText(this.board.getPlayer() + " Robot play");
 		this.btnPlay.setEnabled(false);
 		for (int i = 0; i < this.dirs.length; i++) {
 			this.dirs[i].setEnabled(false);
@@ -185,7 +191,7 @@ public class BoardUI extends JFrame implements ActionListener {
 	Set<JButton> sCells;
 
 	public void log(String s) {
-		this.txt.setText(this.txt.getText() + "\n" + s);
+		this.txtLog.setText(this.txtLog.getText() + "\n" + s);
 	}
 
 	@Override
@@ -197,7 +203,26 @@ public class BoardUI extends JFrame implements ActionListener {
 			} catch (Exception e1) {
 				this.log(e1.getMessage());
 			}
-		} else if (btn == this.btnRollback) {
+		} else if (btn == this.btnAiPlay) {
+			BoardState bs=new BoardState(this.board.cells, null, null, null);
+			try {
+				int depth=3;
+				try{
+					depth=Integer.parseInt(this.txtMinMax.getText());
+				}catch(Exception ee){
+					
+				}
+				MoveInfo mi=bs.getBestMove(this.board.getPlayer(), depth);
+				String msg = "get the move suggestion";
+				JOptionPane.showMessageDialog(this, msg);
+				this.board.setPosition(mi.pos);
+				this.toMove=mi.m;
+				this.move();
+				
+			} catch (Exception e1) {
+				this.log(e1.getMessage());
+			}
+		}else if (btn == this.btnRollback) {
 			this.board.undo();
 		} else if (this.sDirs.contains(btn)) {
 			JRadioButton _btn = (JRadioButton) btn;
@@ -228,12 +253,7 @@ public class BoardUI extends JFrame implements ActionListener {
 			_btn.setText("[" + _btn.getText() + "]");
 			this.updateAvailableDir(p);
 
-		} else if (btn == this.ckbBLack || btn == this.ckbWhite) {
-			if (this.ckbBLack == btn)
-				this.board.setPlayerToAI(Player.BLACK);
-			else
-				this.board.setPlayerToAI(Player.WHITE);
-		}
+		} 
 
 	}
 

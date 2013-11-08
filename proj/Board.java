@@ -335,6 +335,11 @@ public class Board {
 		this.getCell(new BoardPosition("1A")).setCell(10, Player.BLACK);
 		this.getCell(new BoardPosition("4D")).setCell(10, Player.WHITE);
 		this.history = new Stack<Cell[][]>();
+		if (this.players == null) {
+			this.players = new Player[2];
+			this.players[1] = Player.WHITE;
+			this.players[0] = Player.BLACK;
+		}
 		// this.player = Player.BLACK;
 	}
 

@@ -26,7 +26,7 @@ class BoardState {
 	 * @param p
 	 * @return
 	 */
-	static public class Heuristic implements Comparable {
+	static public class Heuristic implements Comparable<Heuristic> {
 		String msg;
 		int black;
 		int white;
@@ -52,8 +52,8 @@ class BoardState {
 		}
 
 		@Override
-		public int compareTo(Object o) {
-			Heuristic h1 = this, h2 = (Heuristic) o;
+		public int compareTo(Heuristic h2) {
+			Heuristic h1 = this;
 			if (h1.getValue() == Integer.MAX_VALUE
 					|| h2.getValue() == Integer.MIN_VALUE)
 				return 1;
@@ -78,9 +78,12 @@ class BoardState {
 	public MoveInfo getBestMove(Player p, int n) throws Exception {
 		Heuristic h=this.getHeuristic(p, n);
 		BoardState child=h.bs;
+		int i=0;
 		while(child.parent!=this){
 			if(child.parent==null) throw new Exception("Error in function of searching heuristic."); 
 			child=child.parent;
+			if(i++>n)throw new Exception("Error in MinMax");
+			
 		}
 		
 		return new MoveInfo(child.posMoved, child.by);
@@ -101,8 +104,12 @@ class BoardState {
 		
 		List<BoardState> bss=this.getChildren(p);
 		Set<Heuristic> hs=new HashSet<Heuristic>();
+		n--;
 		for(BoardState bs: bss){
-			hs.add(bs.getHeuristic(p.shift(), --n));
+			hs.add(bs.getHeuristic(p.shift(), n));
+		}
+		if(hs.size()==0){
+			return this.getHeuristic(p);
 		}
 		if(p==Player.BLACK){
 			return Collections.max(hs);
@@ -170,9 +177,11 @@ class BoardState {
 	}
 
 	static public void main(String[] args) throws Exception {
-		Board b = new Board();
-		BoardState bs = new BoardState(b.cells, null, null, null);
-		Player p = b.getPlayer();
-		bs.isPathFailure(p);
+		int i=9;
+		System.out.println(--i);
+//		Board b = new Board();
+//		BoardState bs = new BoardState(b.cells, null, null, null);
+//		Player p = b.getPlayer();
+//		bs.isPathFailure(p);
 	}
 }
