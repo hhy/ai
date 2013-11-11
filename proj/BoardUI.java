@@ -2,7 +2,9 @@ package proj;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.ScrollPane;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -20,6 +22,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
@@ -102,11 +105,14 @@ public class BoardUI extends JFrame implements ActionListener {
 
 	public JPanel setMsgPanel() {
 
+		
 		JPanel jp = new JPanel();
-
-		this.txtLog = new JTextArea(30, 40);
+		
+		this.txtLog = new JTextArea();
+		JScrollPane sp=new JScrollPane(this.txtLog);
+		sp.setPreferredSize(new Dimension(400,470));
 		// this.txt.setAutoscrolls(true);
-		jp.add(this.txtLog);
+		jp.add(sp);
 		return jp;
 	}
 
@@ -213,7 +219,7 @@ public class BoardUI extends JFrame implements ActionListener {
 					
 				}
 				MoveInfo mi=bs.getBestMove(this.board.getPlayer(), depth);
-				String msg = "get the move suggestion";
+				String msg = "get the move suggestion, heuristic value: "+mi.h.getValue();
 				JOptionPane.showMessageDialog(this, msg);
 				this.board.setPosition(mi.pos);
 				this.toMove=mi.m;

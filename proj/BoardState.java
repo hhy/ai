@@ -1,6 +1,7 @@
 package proj;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -31,10 +32,11 @@ class BoardState {
 		int black;
 		int white;
 		BoardState bs;
+
 		public Heuristic(int black, int white, BoardState bs) {
 			this.black = black;
 			this.white = white;
-			this.bs=bs;
+			this.bs = bs;
 		}
 
 		@Override
@@ -68,32 +70,41 @@ class BoardState {
 	static public class MoveInfo {
 		Board.BoardPosition pos;
 		TypeMove m;
+		Heuristic h;
 
-		public MoveInfo(BoardPosition pos, TypeMove m) {
+		public MoveInfo(BoardPosition pos, TypeMove m, Heuristic h) {
 			this.pos = pos;
 			this.m = m;
+			this.h=h;
 		}
 	}
 
+	final static long TIMEOUT=3000;
+	static long startingSearching;
+	static boolean isTimeout=false;
 	public MoveInfo getBestMove(Player p, int n) throws Exception {
-		Heuristic h=this.getHeuristic(p, n);
-		BoardState child=h.bs;
-		int i=0;
-		while(child.parent!=this){
-			if(child.parent==null) throw new Exception("Error in function of searching heuristic."); 
-			child=child.parent;
-			if(i++>n)throw new Exception("Error in MinMax");
-			
-		}
+		BoardState.startingSearching=Calendar.getInstance().getTimeInMillis()+TIMEOUT;
 		
-		return new MoveInfo(child.posMoved, child.by);
+		Heuristic h = this.getHeuristic(p, n);
+		BoardState child = h.bs;
+		int i = 0;
+		while (child.parent != this) {
+			if (child.parent == null)
+				throw new Exception("Error in function of searching heuristic.");
+			child = child.parent;
+			if (i++ > n)
+				throw new Exception("Error in MinMax");
+
+		}
+
+		return new MoveInfo(child.posMoved, child.by, h);
 	}
 
 	Heuristic getHeuristic(Player p) throws Exception {
-			
-			int movesBlack = this.getChildren(Player.BLACK).size();
-			int movesWhite = this.getChildren(Player.WHITE).size();
-			return new Heuristic(movesBlack, movesWhite, this);
+
+		int movesBlack = this.getChildren(Player.BLACK).size();
+		int movesWhite = this.getChildren(Player.WHITE).size();
+		return new Heuristic(movesBlack, movesWhite, this);
 
 	}
 
@@ -101,23 +112,42 @@ class BoardState {
 		if (n == 0) {
 			return this.getHeuristic(p);
 		}
-		
-		List<BoardState> bss=this.getChildren(p);
-		Set<Heuristic> hs=new HashSet<Heuristic>();
+
+		List<BoardState> bss = this.getChildren(p);
+		Set<Heuristic> hs = new HashSet<Heuristic>();
 		n--;
-		for(BoardState bs: bss){
-			hs.add(bs.getHeuristic(p.shift(), n));
+		if(bss.size()==0) return this.getHeuristic(p);
+		Heuristic initH = bss.get(0).getHeuristic(p.shift(), n);
+		hs.add(initH);
+		for (BoardState bs : bss) {
+			if(bs==bss.get(0)) continue;
+			Heuristic bsH = bs.getHeuristic(p.shift(), n);
+			if (p == Player.BLACK && bsH.compareTo(initH) <= 0) {
+				continue;
+			}
+			if (p == Player.WHITE && bsH.compareTo(initH) >= 0) {
+				continue;
+			}
+			
+			hs.add(bsH);
+			if(BoardState.isTimeout) break;
+			if(Calendar.getInstance().getTimeInMillis()>BoardState.startingSearching) {
+				System.out.println("I couldn't finish the iteration, but timeout, Take whaterever there are");
+				BoardState.isTimeout=true;
+				break;
+			}
 		}
-		if(hs.size()==0){
+		if (hs.size() == 0) {
 			return this.getHeuristic(p);
 		}
-		if(p==Player.BLACK){
+		if (p == Player.BLACK) {
 			return Collections.max(hs);
-		}else{
+		} else {
 			return Collections.min(hs);
 		}
-		
+
 	}
+	
 
 	public BoardState(Cell[][] current, BoardState parent, TypeMove by,
 			BoardPosition bp) {
@@ -177,11 +207,11 @@ class BoardState {
 	}
 
 	static public void main(String[] args) throws Exception {
-		int i=9;
+		int i = 9;
 		System.out.println(--i);
-//		Board b = new Board();
-//		BoardState bs = new BoardState(b.cells, null, null, null);
-//		Player p = b.getPlayer();
-//		bs.isPathFailure(p);
+		// Board b = new Board();
+		// BoardState bs = new BoardState(b.cells, null, null, null);
+		// Player p = b.getPlayer();
+		// bs.isPathFailure(p);
 	}
 }

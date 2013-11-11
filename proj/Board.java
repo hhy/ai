@@ -206,7 +206,8 @@ public class Board {
 	}
 
 	public List<TypeMove> getAvailableMove(BoardPosition p) {
-		System.out.print(p + " available moves: [");
+		boolean debug=false;
+		if(debug)System.out.print(p + " available moves: [");
 		List<TypeMove> moves = new ArrayList<TypeMove>();
 		for (TypeMove m : TypeMove.values()) {
 			BoardPosition pp = p.getNeighbor(m);
@@ -214,12 +215,12 @@ public class Board {
 				continue;
 			if (this.getCell(pp).player == null
 					|| this.getCell(pp).player == this.getPlayer()) {
-				System.out.print(m + ", ");
+				if(debug)System.out.print(m + ", ");
 				moves.add(m);
 			}
 
 		}
-		System.out.println("]");
+		if(debug)System.out.println("]");
 		return moves;
 	}
 
