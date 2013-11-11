@@ -38,17 +38,17 @@ public class BoardUI extends JFrame implements ActionListener {
 	public JPanel setActPanel() {
 		JPanel jp = new JPanel(new GridLayout(1, 2));
 		JPanel jpBtns = new JPanel(new GridLayout(3, 1));
-		JPanel jpAI=new JPanel(new GridLayout(1, 3));
-		
-		this.btnAiPlay=new JButton(this.board.getPlayer()+" Robot Play");
+		JPanel jpAI = new JPanel(new GridLayout(1, 3));
+
+		this.btnAiPlay = new JButton(this.board.getPlayer() + " Robot Play");
 		this.btnAiPlay.addActionListener(this);
-		JLabel lbMinMax=new JLabel("  Depth of MinMax: ");
-		this.txtMinMax=new JTextField();
-		
+		JLabel lbMinMax = new JLabel("  Depth of MinMax: ");
+		this.txtMinMax = new JTextField();
+
 		jpAI.add(btnAiPlay);
 		jpAI.add(lbMinMax);
 		jpAI.add(txtMinMax);
-		
+
 		this.btnPlay = new JButton(this.board.getPlayer() + " Play");
 		this.btnPlay.addActionListener(this);
 		jpBtns.add(jpAI);
@@ -105,12 +105,11 @@ public class BoardUI extends JFrame implements ActionListener {
 
 	public JPanel setMsgPanel() {
 
-		
 		JPanel jp = new JPanel();
-		
+
 		this.txtLog = new JTextArea();
-		JScrollPane sp=new JScrollPane(this.txtLog);
-		sp.setPreferredSize(new Dimension(400,470));
+		JScrollPane sp = new JScrollPane(this.txtLog);
+		sp.setPreferredSize(new Dimension(400, 470));
 		// this.txt.setAutoscrolls(true);
 		jp.add(sp);
 		return jp;
@@ -120,12 +119,9 @@ public class BoardUI extends JFrame implements ActionListener {
 	JButton btnPlay, btnAiPlay;
 	JButton btnRollback;
 	JButton[][] cells;
-	JTextArea txtLog; 
+	JTextArea txtLog;
 	JTextField txtMinMax;
 	ButtonGroup dirG;
-	
-
-	
 
 	public BoardUI() {
 		super("project 1, board game");
@@ -185,6 +181,10 @@ public class BoardUI extends JFrame implements ActionListener {
 			JOptionPane.showMessageDialog(this, msg);
 		}
 		this.dirG.clearSelection();
+		if (this.txtMinMax.getText() == null
+				|| this.txtMinMax.getText().length() == 0
+				|| !this.txtMinMax.getText().matches("\\d+"))
+			this.txtMinMax.setText("3");
 	}
 
 	public static void main(String[] args) {
@@ -210,25 +210,26 @@ public class BoardUI extends JFrame implements ActionListener {
 				this.log(e1.getMessage());
 			}
 		} else if (btn == this.btnAiPlay) {
-			BoardState bs=new BoardState(this.board.cells, null, null, null);
+			BoardState bs = new BoardState(this.board.cells, null, null, null);
 			try {
-				int depth=3;
-				try{
-					depth=Integer.parseInt(this.txtMinMax.getText());
-				}catch(Exception ee){
-					
+				int depth = 3;
+				try {
+					depth = Integer.parseInt(this.txtMinMax.getText());
+				} catch (Exception ee) {
+
 				}
-				MoveInfo mi=bs.getBestMove(this.board.getPlayer(), depth);
-				String msg = "get the move suggestion, heuristic value: "+mi.h.getValue();
+				MoveInfo mi = bs.getBestMove(this.board.getPlayer(), depth);
+				String msg = "get the move suggestion, heuristic value: "
+						+ mi.h.getValue();
 				JOptionPane.showMessageDialog(this, msg);
 				this.board.setPosition(mi.pos);
-				this.toMove=mi.m;
+				this.toMove = mi.m;
 				this.move();
-				
+
 			} catch (Exception e1) {
 				this.log(e1.getMessage());
 			}
-		}else if (btn == this.btnRollback) {
+		} else if (btn == this.btnRollback) {
 			this.board.undo();
 		} else if (this.sDirs.contains(btn)) {
 			JRadioButton _btn = (JRadioButton) btn;
@@ -259,7 +260,7 @@ public class BoardUI extends JFrame implements ActionListener {
 			_btn.setText("[" + _btn.getText() + "]");
 			this.updateAvailableDir(p);
 
-		} 
+		}
 
 	}
 
