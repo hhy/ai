@@ -212,7 +212,7 @@ public class BoardUI extends JFrame implements ActionListener {
 		} else if (btn == this.btnAiPlay) {
 			BoardState bs = new BoardState(this.board.cells, null, null, null);
 			try {
-				int depth = 3;
+				int depth=3;
 				try {
 					depth = Integer.parseInt(this.txtMinMax.getText());
 				} catch (Exception ee) {

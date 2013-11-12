@@ -37,6 +37,7 @@ class BoardState {
 			this.black = black;
 			this.white = white;
 			this.bs = bs;
+
 		}
 
 		@Override
@@ -46,9 +47,9 @@ class BoardState {
 		}
 
 		public int getValue() {
-			if (white == 0)
+			if (white <= 1 && black > 5)
 				return Integer.MAX_VALUE;
-			if (black == 0)
+			if (black <= 1 && white > 5)
 				return Integer.MIN_VALUE;
 			return black - white;
 		}
@@ -56,6 +57,14 @@ class BoardState {
 		@Override
 		public int compareTo(Heuristic h2) {
 			Heuristic h1 = this;
+			// if (h1.getValue() == Integer.MAX_VALUE
+			// || h2.getValue() == Integer.MIN_VALUE
+			// || h1.getValue() == Integer.MIN_VALUE
+			// || h2.getValue() == Integer.MAX_VALUE)
+			// System.out.println(String.format(
+			// "compare, this: %d, other: %d", this.getValue(),
+			// h2.getValue()));
+
 			if (h1.getValue() == Integer.MAX_VALUE
 					|| h2.getValue() == Integer.MIN_VALUE)
 				return 1;
@@ -75,25 +84,31 @@ class BoardState {
 		public MoveInfo(BoardPosition pos, TypeMove m, Heuristic h) {
 			this.pos = pos;
 			this.m = m;
-			this.h=h;
+			this.h = h;
 		}
 	}
 
-	final static long TIMEOUT=3000;
+	final static long TIMEOUT = 3000;
 	static long startingSearching;
-	static boolean isTimeout=false;
+	static boolean isTimeout = false;
+
 	public MoveInfo getBestMove(Player p, int n) throws Exception {
-		BoardState.startingSearching=Calendar.getInstance().getTimeInMillis()+TIMEOUT;
-		
+		BoardState.startingSearching = Calendar.getInstance().getTimeInMillis()
+				+ TIMEOUT;
+
 		Heuristic h = this.getHeuristic(p, n);
 		BoardState child = h.bs;
 		int i = 0;
 		while (child.parent != this) {
-			if (child.parent == null)
+			if (child.parent == null) {
+				System.out.println("Error in function of searching heuristic.");
 				throw new Exception("Error in function of searching heuristic.");
+			}
 			child = child.parent;
-			if (i++ > n)
+			if (i++ > n) {
+				System.out.println("Error in MinMax.");
 				throw new Exception("Error in MinMax");
+			}
 
 		}
 
@@ -113,41 +128,82 @@ class BoardState {
 			return this.getHeuristic(p);
 		}
 
-		List<BoardState> bss = this.getChildren(p);
-		Set<Heuristic> hs = new HashSet<Heuristic>();
-		n--;
-		if(bss.size()==0) return this.getHeuristic(p);
-		Heuristic initH = bss.get(0).getHeuristic(p.shift(), n);
-		hs.add(initH);
-		for (BoardState bs : bss) {
-			if(bs==bss.get(0)) continue;
-			Heuristic bsH = bs.getHeuristic(p.shift(), n);
-			if (p == Player.BLACK && bsH.compareTo(initH) <= 0) {
-				continue;
-			}
-			if (p == Player.WHITE && bsH.compareTo(initH) >= 0) {
-				continue;
-			}
-			
-			hs.add(bsH);
-			if(BoardState.isTimeout) break;
-			if(Calendar.getInstance().getTimeInMillis()>BoardState.startingSearching) {
-				System.out.println("I couldn't finish the iteration, but timeout, Take whaterever there are");
-				BoardState.isTimeout=true;
-				break;
-			}
+		Heuristic current = this.getHeuristic(p);
+		if (p == Player.BLACK && current.getValue() == Integer.MAX_VALUE) {
+			return current;
+
 		}
-		if (hs.size() == 0) {
-			return this.getHeuristic(p);
-		}
-		if (p == Player.BLACK) {
-			return Collections.max(hs);
-		} else {
-			return Collections.min(hs);
+		if (p == Player.WHITE && current.getValue() == Integer.MIN_VALUE) {
+			return current;
+
 		}
 
+		List<BoardState> bss = this.getChildren(p);
+		// Set<Heuristic> hs = new HashSet<Heuristic>();
+		n--;
+		if (bss.size() == 0)
+			return this.getHeuristic(p);
+
+		Heuristic h = bss.get(0).getHeuristic(p.shift(), n);
+		if (p == Player.BLACK) {
+			if (h.getValue() == Integer.MAX_VALUE) {
+				return h;
+			}
+		}
+		if (p == Player.WHITE) {
+			if (h.getValue() == Integer.MIN_VALUE) {
+				return h;
+			}
+		}
+
+		// hs.add(h);
+		for (BoardState bs : bss) {
+			 if (BoardState.isTimeout)
+			 break;
+			 if (Calendar.getInstance().getTimeInMillis() >
+			 BoardState.startingSearching) {
+			 System.out
+			 .println("I couldn't finish the iteration, but timeout, Take whaterever there are");
+			 BoardState.isTimeout = true;
+			 break;
+			 }
+
+			if (bs == bss.get(0))
+				continue;
+
+			Heuristic bsH = bs.getHeuristic(p.shift(), n);
+
+			if (p == Player.BLACK) {
+				if (bsH.getValue() == Integer.MAX_VALUE) {
+					h = bsH;
+					break;
+				}
+				if (bsH.compareTo(h) <= 0)
+					continue;
+			}
+			if (p == Player.WHITE) {
+				if (bsH.getValue() == Integer.MIN_VALUE) {
+					h = bsH;
+					break;
+
+				}
+				if (bsH.compareTo(h) >= 0)
+					continue;
+			}
+
+			h = bsH;
+			// hs.add(bsH);
+
+		}
+
+		// if (p == Player.BLACK) {
+		// return Collections.max(hs);
+		// } else {
+		// return Collections.min(hs);
+		// }
+		return h;
+
 	}
-	
 
 	public BoardState(Cell[][] current, BoardState parent, TypeMove by,
 			BoardPosition bp) {
@@ -164,11 +220,13 @@ class BoardState {
 		b.setPlayer(p);
 		b.cells = this.current;
 		List<BoardPosition> poss = b.getAvailablePos();
-		for (BoardPosition pos : poss)
-			for (TypeMove m : b.getAvailableMove(pos)) {
+		for (BoardPosition pos : poss) {
+			List<TypeMove> ms = b.getAvailableMove(pos);
+			for (TypeMove m : ms) {
 				BoardState s = this.getNext(m, p, pos);
 				ss.add(s);
 			}
+		}
 		return ss;
 	}
 
@@ -206,12 +264,4 @@ class BoardState {
 		return false;
 	}
 
-	static public void main(String[] args) throws Exception {
-		int i = 9;
-		System.out.println(--i);
-		// Board b = new Board();
-		// BoardState bs = new BoardState(b.cells, null, null, null);
-		// Player p = b.getPlayer();
-		// bs.isPathFailure(p);
-	}
 }

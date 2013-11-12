@@ -160,15 +160,14 @@ public class Board {
 	}
 
 	private BoardPosition posCurrent;
-	private Player[] players;
+	private Player player;
 
 	public Player getPlayer() {
-		if (this.players == null) {
-			this.players = new Player[2];
-			this.players[1] = Player.WHITE;
-			this.players[0] = Player.BLACK;
+		if (this.player == null) {
+
+			this.player = Player.BLACK;
 		}
-		return this.players[0];
+		return this.player;
 	}
 
 	public BoardPosition getCurrentPos() {
@@ -178,10 +177,10 @@ public class Board {
 	}
 
 	private void switchPlayer() {
-
-		Player p = this.players[0];
-		this.players[0] = this.players[1];
-		this.players[1] = p;
+		if (this.player==null || this.player == Player.WHITE)
+			this.player= Player.BLACK;
+		else
+			this.player= Player.WHITE;
 	}
 
 	public void setPosition(BoardPosition p) throws Exception {
@@ -206,8 +205,9 @@ public class Board {
 	}
 
 	public List<TypeMove> getAvailableMove(BoardPosition p) {
-		boolean debug=false;
-		if(debug)System.out.print(p + " available moves: [");
+		boolean debug = false;
+		if (debug)
+			System.out.print(p + " available moves: [");
 		List<TypeMove> moves = new ArrayList<TypeMove>();
 		for (TypeMove m : TypeMove.values()) {
 			BoardPosition pp = p.getNeighbor(m);
@@ -215,12 +215,14 @@ public class Board {
 				continue;
 			if (this.getCell(pp).player == null
 					|| this.getCell(pp).player == this.getPlayer()) {
-				if(debug)System.out.print(m + ", ");
+				if (debug)
+					System.out.print(m + ", ");
 				moves.add(m);
 			}
 
 		}
-		if(debug)System.out.println("]");
+		if (debug)
+			System.out.println("]");
 		return moves;
 	}
 
@@ -336,12 +338,7 @@ public class Board {
 		this.getCell(new BoardPosition("1A")).setCell(10, Player.BLACK);
 		this.getCell(new BoardPosition("4D")).setCell(10, Player.WHITE);
 		this.history = new Stack<Cell[][]>();
-		if (this.players == null) {
-			this.players = new Player[2];
-			this.players[1] = Player.WHITE;
-			this.players[0] = Player.BLACK;
-		}
-		// this.player = Player.BLACK;
+		this.player = Player.BLACK;
 	}
 
 	public boolean lost() {
@@ -356,23 +353,15 @@ public class Board {
 	}
 
 	void setPlayer(Player p) {
-		if (this.players[0] != p)
+		if (this.player != p)
 			this.switchPlayer();
 	}
 
-	void setPlayerToAI(Player p) {
-		if (this.players[0] == p)
-			this.players[0].setAI();
-		else
-			this.players[1].setAI();
-	}
+
 
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args) {
-		Board b = new Board();
-
-	}
+	
 
 }
